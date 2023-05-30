@@ -1,0 +1,22 @@
+[package]
+name = "qemu-rdp"
+version = "0.1.0"
+authors = ["Mihnea Buzatu <mihneabuzatu88@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+qemu-display = { path = "../qemu-display" }
+keycodemap = { path ="../keycodemap" }
+bytes = "1.4"
+rustls = { version = "0.21" }
+rustls-pemfile = "1.0"
+tokio = { version = "1.28", features = ["full"] }
+tokio-rustls = "0.24"
+anyhow = "1.0"
+zbus = { version = "3.0" }
+clap = { version = "3.2", features = ["derive"] }
+async-trait = "0.1"
+ironrdp = { path = "../../IronRDP/crates/ironrdp" }
+ironrdp-server = { path = "../../IronRDP/crates/ironrdp-server" }

@@ -5,6 +5,7 @@ members = [
     "qemu-rdw",
     "qemu-vnc",
     "qemu-vte",
+    "qemu-rdp",
     "xtask",
 ]
 default-members = ["qemu-rdw"]
