@@ -4,10 +4,11 @@ mod input;
 use std::{fs::File, io::BufReader, sync::Arc};
 
 use anyhow::Error;
-use ironrdp_server::RdpServer;
 use rustls::ServerConfig;
 use rustls_pemfile::{certs, pkcs8_private_keys};
 use tokio_rustls::TlsAcceptor;
+
+use ironrdp::server::RdpServer;
 
 use crate::args::ServerArgs;
 
@@ -37,8 +38,8 @@ impl Server {
 
         let mut server = RdpServer::builder()
             .with_addr((self.args.address, self.args.port))
-            .with_ssl(tls.unwrap())
-            .with_io_handler(handler)
+            .with_tls(tls.unwrap())
+            .with_input_handler(handler)
             .with_display_handler(display)
             .build();
 
