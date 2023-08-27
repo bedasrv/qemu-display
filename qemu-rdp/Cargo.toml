@@ -18,5 +18,4 @@ anyhow = "1.0"
 zbus = { version = "3.0" }
 clap = { version = "3.2", features = ["derive"] }
 async-trait = "0.1"
-# TODO: replace this with upstream after merge
-ironrdp = { git = "https://github.com/mihneabuz/IronRDP.git", branch = "feature_server", features = ["server"] }
+ironrdp = { git = "https://github.com/Devolutions/IronRDP", features = ["server"] }
