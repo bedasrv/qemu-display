@@ -1,5 +1,5 @@
 use clap::clap_derive::ValueEnum;
-use clap::Parser;
+use clap::{crate_name, Parser};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum SecurityProtocol {
@@ -43,6 +43,9 @@ pub struct ServerArgs {
 
 #[derive(Parser, Debug)]
 pub struct Args {
+    #[clap(short, long, value_parser, default_value_t = format!("{}.log", crate_name!()))]
+    pub log_file: String,
+
     #[clap(flatten)]
     pub server: ServerArgs,
 
