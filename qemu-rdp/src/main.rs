@@ -1,3 +1,5 @@
+use qemu_display::zbus;
+
 mod args;
 mod server;
 

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use ironrdp::connector::DesktopSize;
-use qemu_display::{Console, ConsoleListenerHandler, Cursor, MouseSet, Scanout, Update};
+use qemu_display::{zbus, Console, ConsoleListenerHandler, Cursor, MouseSet, Scanout, Update};
 
 use ironrdp::server::{BitmapUpdate, DisplayUpdate, PixelFormat, PixelOrder, RdpServerDisplay};
 

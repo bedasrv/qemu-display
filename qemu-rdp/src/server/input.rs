@@ -1,4 +1,4 @@
-use qemu_display::{Console, KeyboardProxy, MouseButton, MouseProxy};
+use qemu_display::{zbus, Console, KeyboardProxy, MouseButton, MouseProxy};
 
 use ironrdp::server::{KeyboardEvent, MouseEvent, RdpServerInputHandler};
 
