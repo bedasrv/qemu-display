@@ -11,4 +11,7 @@ pub trait VM {
     /// UUID property
     #[zbus(property)]
     fn uuid(&self) -> zbus::Result<String>;
+
+    #[zbus(property, name = "ConsoleIDs")]
+    fn console_ids(&self) -> zbus::Result<Vec<u32>>;
 }
