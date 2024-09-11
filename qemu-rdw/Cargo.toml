@@ -21,9 +21,13 @@ async-trait = "0.1"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter" , "fmt"], default-features = false }
 
 [target.'cfg(unix)'.dependencies]
-rdw = { package = "rdw4", version = "0.1", features = ["bindings"] }
+rdw = { package = "rdw4", git = "https://gitlab.gnome.org/malureau/rdw/", version = "0.1" }
 
 [target.'cfg(windows)'.dependencies]
 uds_windows = "1.1.0"
 windows = { version = "0.43.0", features = ["Win32_System_Memory", "Win32_Foundation"] }
-rdw = { package = "rdw4", version = "0.1", features = ["bindings"], default-features = false }
+rdw = { package = "rdw4", git = "https://gitlab.gnome.org/malureau/rdw/", version = "0.1", default-features = false }
+
+[[bin]]
+path = "./demo/main.rs"
+name = "demo"

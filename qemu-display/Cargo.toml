@@ -11,8 +11,9 @@ qmp = ["dep:qapi", "dep:base64"]
 
 [dependencies]
 tracing.workspace = true
-zbus.workspace = true
+zbus = {workspace = true, features = ["p2p"]}
 cfg-if = "1.0"
+log = "0.4"
 derivative = "2.2"
 zvariant = { version = "4", features = ["serde_bytes"] }
 libc = "0.2"
