@@ -680,7 +680,7 @@ dependencies = [
 [[package]]
 name = "cbindgen"
 version = "0.20.0"
-source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#da727087889e2ca3f0d5c7978094fbdbd1cf231c"
+source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#35d73641a4a71cd9ec3851678cbfa3c630a21748"
 dependencies = [
  "clap 2.34.0",
  "heck 0.3.3",
@@ -3357,7 +3357,6 @@ dependencies = [
  "cfg-if",
  "derivative",
  "enumflags2",
- "futures",
  "futures-util",
  "libc",
  "log 0.4.22",
@@ -3400,7 +3399,7 @@ name = "qemu-rdw"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "futures",
+ "futures-channel",
  "futures-util",
  "keycodemap",
  "log 0.4.22",
@@ -3527,18 +3526,19 @@ dependencies = [
 [[package]]
 name = "rdw-keycodemap"
 version = "0.1.0"
-source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#da727087889e2ca3f0d5c7978094fbdbd1cf231c"
+source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#35d73641a4a71cd9ec3851678cbfa3c630a21748"
 
 [[package]]
 name = "rdw4"
 version = "0.1.0"
-source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#da727087889e2ca3f0d5c7978094fbdbd1cf231c"
+source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#35d73641a4a71cd9ec3851678cbfa3c630a21748"
 dependencies = [
  "cargo_metadata",
  "cbindgen",
  "derivative",
  "epoxy",
- "futures",
+ "futures-channel",
+ "futures-util",
  "gdk4-wayland",
  "gdk4-win32",
  "gdk4-x11",
@@ -3561,9 +3561,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.5.3"
+version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a908a6e00f1fdd0dfd9c0eb08ce85126f6d8bbda50017e74bc4a4b7d4a926a4"
+checksum = "0884ad60e090bf1345b93da0a5de8923c93884cd03f40dfcfddd3b4bee661853"
 dependencies = [
  "bitflags 2.6.0",
 ]

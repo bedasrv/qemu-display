@@ -22,7 +22,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1"
 serde_bytes = "0.11"
 futures-util = { version = "0.3", features = ["async-await-macro"] }
-futures = "0.3"
 usbredirhost = "0.2"
 async-broadcast = "0.7"
 async-trait = "0.1"

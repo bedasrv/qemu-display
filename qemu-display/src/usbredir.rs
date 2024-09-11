@@ -1,6 +1,6 @@
 use async_broadcast::{broadcast, Receiver, Sender};
 use async_lock::RwLock;
-use futures::Stream;
+use futures_util::Stream;
 #[cfg(unix)]
 use std::os::unix::{
     io::{AsRawFd, RawFd},

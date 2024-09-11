@@ -1,4 +1,4 @@
-use futures::stream::{self, StreamExt};
+use futures_util::{stream, StreamExt};
 use std::{
     collections::HashMap,
     convert::{TryFrom, TryInto},

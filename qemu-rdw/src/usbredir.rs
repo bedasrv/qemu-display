@@ -72,7 +72,7 @@ impl Handler {
             #[weak]
             widget,
             async move {
-                use futures::stream::StreamExt; // for `next`
+                use futures_util::StreamExt; // for `next`
                 widget.set_property("free-channels", usbredir.n_free_channels().await);
                 let mut n = usbredir.receive_n_free_channels().await;
                 while let Some(n) = n.next().await {

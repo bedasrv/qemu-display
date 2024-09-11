@@ -283,7 +283,7 @@ mod imp {
                 async move {
                     let console = this.console.get().unwrap();
                     // we have to use a channel, because widget is not Send..
-                    let (sender, mut receiver) = futures::channel::mpsc::unbounded();
+                    let (sender, mut receiver) = futures_channel::mpsc::unbounded();
                     let handler = ConsoleHandler { sender };
                     console.register_listener(handler.clone()).await.unwrap();
                     #[cfg(windows)]
@@ -524,14 +524,14 @@ enum ConsoleEvent {
     #[cfg(windows)]
     UpdateD3dTexture2d {
         update: qemu_display::UpdateD3dTexture2d,
-        wait_tx: futures::channel::oneshot::Sender<()>,
+        wait_tx: futures_channel::oneshot::Sender<()>,
     },
     #[cfg(unix)]
     ScanoutDMABUF(qemu_display::ScanoutDMABUF),
     #[cfg(unix)]
     UpdateDMABUF {
         update: qemu_display::UpdateDMABUF,
-        wait_tx: futures::channel::oneshot::Sender<()>,
+        wait_tx: futures_channel::oneshot::Sender<()>,
     },
     Disable,
     MouseSet(qemu_display::MouseSet),
@@ -541,7 +541,7 @@ enum ConsoleEvent {
 
 #[derive(Clone)]
 struct ConsoleHandler {
-    sender: futures::channel::mpsc::UnboundedSender<ConsoleEvent>,
+    sender: futures_channel::mpsc::UnboundedSender<ConsoleEvent>,
 }
 
 impl ConsoleHandler {
@@ -576,7 +576,7 @@ impl ConsoleListenerD3d11Handler for ConsoleHandler {
 
     #[cfg(windows)]
     async fn update_texture2d(&mut self, update: qemu_display::UpdateD3dTexture2d) {
-        let (wait_tx, wait_rx) = futures::channel::oneshot::channel();
+        let (wait_tx, wait_rx) = futures_channel::oneshot::channel();
         self.send(ConsoleEvent::UpdateD3dTexture2d { update, wait_tx });
         if let Err(e) = wait_rx.await {
             log::warn!("wait update d3d texture2d failed: {}", e);
@@ -601,7 +601,7 @@ impl ConsoleListenerHandler for ConsoleHandler {
 
     #[cfg(unix)]
     async fn update_dmabuf(&mut self, update: qemu_display::UpdateDMABUF) {
-        let (wait_tx, wait_rx) = futures::channel::oneshot::channel();
+        let (wait_tx, wait_rx) = futures_channel::oneshot::channel();
         self.send(ConsoleEvent::UpdateDMABUF { update, wait_tx });
         if let Err(e) = wait_rx.await {
             log::warn!("wait update dmabuf failed: {}", e);

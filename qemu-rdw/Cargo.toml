@@ -14,8 +14,8 @@ pretty_env_logger = "0.5"
 zbus.workspace = true
 qemu-display.workspace = true
 keycodemap.workspace = true
+futures-channel = "0.3"
 futures-util = "0.3"
-futures = "0.3"
 async-trait = "0.1"
 tracing-subscriber = { version = "0.3.18", features = [
     "env-filter",
