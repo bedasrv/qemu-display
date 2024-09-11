@@ -69,16 +69,31 @@ pub struct Console {
 }
 
 impl Console {
-    pub async fn new(conn: &Connection, idx: u32, #[cfg(windows)] peer_pid: u32) -> Result<Self> {
+    pub async fn with_unique_name(
+        conn: &Connection,
+        idx: u32,
+        unique_name: &str,
+        #[cfg(windows)] peer_pid: u32,
+    ) -> Result<Self> {
         let obj_path = ObjectPath::try_from(format!("/org/qemu/Display1/Console_{}", idx))?;
-        let proxy = ConsoleProxy::builder(conn).path(&obj_path)?.build().await?;
-        let keyboard = KeyboardProxy::builder(conn)
+        let proxy = ConsoleProxy::builder(conn)
             .path(&obj_path)?
+            .destination(unique_name.to_owned())?
             .build()
             .await?;
-        let mouse = MouseProxy::builder(conn).path(&obj_path)?.build().await?;
+        let keyboard = KeyboardProxy::builder(conn)
+            .path(&obj_path)?
+            .destination(unique_name.to_owned())?
+            .build()
+            .await?;
+        let mouse = MouseProxy::builder(conn)
+            .path(&obj_path)?
+            .destination(unique_name.to_owned())?
+            .build()
+            .await?;
         let multi_touch = MultiTouchProxy::builder(conn)
             .path(&obj_path)?
+            .destination(unique_name.to_owned())?
             .build()
             .await?;
         Ok(Self {
@@ -90,6 +105,17 @@ impl Console {
             #[cfg(windows)]
             peer_pid,
         })
+    }
+
+    pub async fn new(conn: &Connection, idx: u32, #[cfg(windows)] peer_pid: u32) -> Result<Self> {
+        Self::with_unique_name(
+            conn,
+            idx,
+            "org.qemu",
+            #[cfg(windows)]
+            peer_pid,
+        )
+        .await
     }
 
     pub async fn label(&self) -> Result<String> {
