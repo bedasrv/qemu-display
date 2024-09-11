@@ -494,7 +494,7 @@ impl Display {
         obj
     }
 
-    pub(crate) fn console(&self) -> &Console {
+    pub fn console(&self) -> &Console {
         let self_ = imp::Display::from_obj(self);
         self_.console.get().unwrap()
     }
