@@ -1,7 +1,6 @@
 use futures_util::StreamExt;
 use glib::{clone, subclass::prelude::*, MainContext};
 use gtk::{glib, prelude::*};
-use once_cell::sync::OnceCell;
 use qemu_display::{Console, ConsoleListenerHandler};
 #[cfg(windows)]
 use qemu_display::{ConsoleListenerD3d11Handler, ConsoleListenerMapHandler};
@@ -13,6 +12,7 @@ use std::os::unix::io::IntoRawFd;
 mod imp {
     use super::*;
     use gtk::subclass::prelude::*;
+    use std::cell::OnceCell;
     #[cfg(windows)]
     use std::cell::RefCell;
     #[cfg(windows)]

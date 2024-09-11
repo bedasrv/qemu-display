@@ -142,9 +142,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.87"
+version = "1.0.88"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10f00e1f6e58a40e807377c75c6a7f97bf9044fab57816f2414e6f5f4499d7b8"
+checksum = "4e1496f8fb1fbf272686b8d37f523dab3e4a7443300055e74cdaa449f3114356"
 
 [[package]]
 name = "asn1-rs"
@@ -680,7 +680,7 @@ dependencies = [
 [[package]]
 name = "cbindgen"
 version = "0.20.0"
-source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#25508ca54c68de12389350c9db23cad364dc903a"
+source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#da727087889e2ca3f0d5c7978094fbdbd1cf231c"
 dependencies = [
  "clap 2.34.0",
  "heck 0.3.3",
@@ -3361,7 +3361,6 @@ dependencies = [
  "futures-util",
  "libc",
  "log 0.4.22",
- "once_cell",
  "pixman-sys",
  "qapi",
  "rand",
@@ -3405,7 +3404,6 @@ dependencies = [
  "futures-util",
  "keycodemap",
  "log 0.4.22",
- "once_cell",
  "pretty_env_logger",
  "qemu-display",
  "rdw4",
@@ -3437,7 +3435,6 @@ version = "0.1.0"
 dependencies = [
  "futures",
  "log 0.4.22",
- "once_cell",
  "pretty_env_logger",
  "qemu-display",
  "vte4",
@@ -3530,12 +3527,12 @@ dependencies = [
 [[package]]
 name = "rdw-keycodemap"
 version = "0.1.0"
-source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#25508ca54c68de12389350c9db23cad364dc903a"
+source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#da727087889e2ca3f0d5c7978094fbdbd1cf231c"
 
 [[package]]
 name = "rdw4"
 version = "0.1.0"
-source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#25508ca54c68de12389350c9db23cad364dc903a"
+source = "git+https://gitlab.gnome.org/bilelmoussaoui/rdw/?branch=bilelmoussaoui/rdw-update#da727087889e2ca3f0d5c7978094fbdbd1cf231c"
 dependencies = [
  "cargo_metadata",
  "cbindgen",
