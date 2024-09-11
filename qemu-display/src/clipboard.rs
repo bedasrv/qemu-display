@@ -94,10 +94,15 @@ pub struct Clipboard {
 }
 
 impl Clipboard {
-    pub async fn new(conn: &zbus::Connection) -> Result<Self> {
+    pub async fn new<D>(conn: &zbus::Connection, dest: D) -> Result<Self>
+    where
+        D: TryInto<zbus::names::BusName<'static>>,
+        D::Error: Into<zbus::Error>,
+    {
         let obj_path = ObjectPath::try_from("/org/qemu/Display1/Clipboard").unwrap();
         let proxy = ClipboardProxy::builder(conn)
             .path(&obj_path)?
+            .destination(dest)?
             .build()
             .await?;
         Ok(Self {

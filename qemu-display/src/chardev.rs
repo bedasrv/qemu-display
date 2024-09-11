@@ -39,9 +39,18 @@ pub struct Chardev {
 }
 
 impl Chardev {
-    pub async fn new(conn: &zbus::Connection, id: &str) -> Result<Self> {
+    pub async fn new<D>(conn: &zbus::Connection, id: &str, dest: Option<D>) -> Result<Self>
+    where
+        D: TryInto<zbus::names::BusName<'static>>,
+        D::Error: Into<zbus::Error>,
+    {
         let obj_path = ObjectPath::try_from(format!("/org/qemu/Display1/Chardev_{}", id))?;
-        let proxy = ChardevProxy::builder(conn).path(&obj_path)?.build().await?;
+        let mut builder = ChardevProxy::builder(conn).path(&obj_path)?;
+
+        if let Some(dest) = dest {
+            builder = builder.destination(dest)?;
+        }
+        let proxy = builder.build().await?;
         Ok(Self { proxy })
     }
 }

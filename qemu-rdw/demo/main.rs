@@ -234,7 +234,13 @@ impl App {
                     }
                 }
 
-                if let Ok(c) = Chardev::new(display.connection(), "qmp").await {
+                if let Ok(c) = Chardev::new(
+                    display.connection(),
+                    "qmp",
+                    Some(display.destination().to_owned()),
+                )
+                .await
+                {
                     use std::io::{prelude::*, BufReader};
                     #[cfg(unix)]
                     use std::os::unix::net::UnixStream;
