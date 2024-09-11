@@ -1,5 +1,5 @@
 use futures_util::StreamExt;
-use glib::{clone, subclass::prelude::*, MainContext};
+use glib::{clone, subclass::prelude::*, translate::*, MainContext};
 use gtk::{glib, prelude::*};
 use qemu_display::{Console, ConsoleListenerHandler};
 #[cfg(windows)]
@@ -79,7 +79,7 @@ mod imp {
     #[derive(Debug, Default)]
     pub struct Display {
         pub(crate) console: OnceCell<Console>,
-        keymap: Cell<Option<&'static [u16]>>,
+        pub(super) keymap: Cell<Option<&'static [u16]>>,
         #[cfg(windows)]
         scanout_map: RefCell<Option<(MemoryMap, u32)>>,
     }
@@ -114,11 +114,7 @@ mod imp {
                 #[weak(rename_to = this)]
                 self,
                 move |_, keyval, keycode, event| {
-                    let mapped = this
-                        .keymap
-                        .get()
-                        .and_then(|m| m.get(keycode as usize))
-                        .map(|x| *x as u32);
+                    let mapped = unsafe { this.obj().map_key(gtk::gdk::Key::from_glib(keycode)) };
                     log::debug!("key-{event:?}: {keyval} {keycode} -> {mapped:?}");
                     if let Some(qnum) = mapped {
                         MainContext::default().spawn_local(clone!(
@@ -503,6 +499,14 @@ impl Display {
         let self_ = imp::Display::from_obj(&obj);
         self_.console.set(console).unwrap();
         obj
+    }
+
+    pub fn map_key(&self, key: gtk::gdk::Key) -> Option<u32> {
+        self.imp()
+            .keymap
+            .get()
+            .and_then(|m| m.get(key.into_glib() as usize))
+            .map(|x| *x as u32)
     }
 
     pub fn console(&self) -> &Console {
