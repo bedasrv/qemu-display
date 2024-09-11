@@ -1,6 +1,6 @@
 use futures_util::StreamExt;
 use glib::{clone, subclass::prelude::*, MainContext};
-use gtk::glib;
+use gtk::{glib, prelude::*};
 use once_cell::sync::OnceCell;
 use qemu_display::{Console, ConsoleListenerHandler};
 #[cfg(windows)]
@@ -91,12 +91,23 @@ mod imp {
         type ParentType = rdw::Display;
         type Class = RdwDisplayQemuClass;
         type Instance = RdwDisplayQemu;
+
+        fn class_init(klass: &mut Self::Class) {
+            klass.set_css_name("RdwDisplayQemu");
+        }
     }
 
     impl ObjectImpl for Display {
         fn constructed(&self) {
             self.parent_constructed();
 
+            let provider = gtk::CssProvider::new();
+            provider.load_from_string("RdwDisplayQemu {background:black;}");
+            gtk::style_context_add_provider_for_display(
+                &self.obj().display(),
+                &provider,
+                gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+            );
             self.obj().set_mouse_absolute(false);
 
             self.obj().connect_key_event(clone!(
