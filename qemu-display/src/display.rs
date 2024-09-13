@@ -1,4 +1,4 @@
-use futures::stream::{self, StreamExt};
+use futures_util::{stream, StreamExt};
 use std::{
     collections::HashMap,
     convert::{TryFrom, TryInto},
@@ -246,14 +246,26 @@ impl<'d> Display<'d> {
             return Ok(None);
         }
 
-        Ok(Some(Clipboard::new(&self.inner.conn).await?))
+        Ok(Some(
+            Clipboard::new(
+                &self.inner.conn,
+                self.inner.proxy.inner().destination().to_owned(),
+            )
+            .await?,
+        ))
     }
 
     pub async fn chardevs(&self) -> Vec<Chardev> {
         stream::iter(&self.inner.objects)
             .filter_map(|(p, _ifaces)| async move {
                 match p.strip_prefix("/org/qemu/Display1/Chardev_") {
-                    Some(id) => Chardev::new(&self.inner.conn, id).await.ok(),
+                    Some(id) => Chardev::new(
+                        &self.inner.conn,
+                        id,
+                        Some(self.inner.proxy.inner().destination().to_owned()),
+                    )
+                    .await
+                    .ok(),
                     _ => None,
                 }
             })

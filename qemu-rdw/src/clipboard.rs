@@ -101,7 +101,7 @@ impl ClipboardHandler for InnerHandler {
         selection: ClipboardSelection,
         mimes: Vec<String>,
     ) -> qemu_display::Result<(String, Vec<u8>)> {
-        let (sender, receiver) = futures::channel::oneshot::channel();
+        let (sender, receiver) = futures_channel::oneshot::channel();
         glib::MainContext::default().invoke(move || {
             glib::MainContext::default().spawn_local(async move {
                 let res = if let Some((clipboard, _)) = clipboard_from_selection(selection) {

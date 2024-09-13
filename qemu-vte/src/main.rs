@@ -1,4 +1,3 @@
-use futures::prelude::*;
 use glib::{clone, MainContext};
 use gtk::{gio, glib};
 use qemu_display::Chardev;
