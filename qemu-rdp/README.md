@@ -71,6 +71,16 @@ cd qemu-display/qemu-rdp
 cargo build
 ```
 
+Since credentials are not managed properly right now, you will need to manually set the credentials
+when connecting through smth like [IronRDP/ironrdp/client](https://github.com/Devolutions/IronRDP/tree/master/crates/ironrdp-client)
+```bash
+busctl --user call \
+  org.QemuDisplay.RDP \
+  /org/qemu_display/rdp \
+  org.QemuDisplay.RDP \
+  SetCredentials sss "user" "pass" "" #the default credentials
+```
+
 ## Changelog
 
 ### [0.1.0] - 2025-01-29
