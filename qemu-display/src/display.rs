@@ -194,6 +194,8 @@ impl<'d> Display<'d> {
             fdname: "fdname".into(),
         })?;
 
+        #[cfg(all(unix, feature = "tokio"))]
+        let p1 = tokio::net::UnixStream::from_std(p1)?;
         let conn = zbus::connection::Builder::unix_stream(p1).p2p();
         #[cfg(windows)]
         let conn = conn.auth_mechanism(zbus::AuthMechanism::Anonymous);
