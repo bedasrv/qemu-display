@@ -264,7 +264,7 @@ impl<'d> Display<'d> {
     pub async fn usbredir_chardevs(&self) -> Vec<Chardev> {
         stream::iter(self.chardevs().await)
             .filter_map(|c| async move {
-                if c.proxy.name().await.ok() == Some("org.qemu.usbredir".to_string()) {
+                if c.proxy.name().await.ok().as_deref() == Some("org.qemu.usbredir") {
                     Some(c)
                 } else {
                     None

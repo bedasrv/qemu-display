@@ -14,20 +14,25 @@ use crate::{Chardev, Error, Result};
 #[cfg(windows)]
 use uds_windows::UnixStream;
 
-/// Backend trait for USB redirection implementations.
+/// Backend trait for a concrete USB redirection implementation.
 ///
-/// Implementations provide device-side protocol handling. The channel manager
-/// handles QEMU D-Bus chardev selection and socket pair creation.
+/// `UsbRedir` only allocates a QEMU usbredir chardev and registers one end of a
+/// socket pair through D-Bus. The backend owns the other end of the stream and
+/// is responsible for the actual usbredir protocol bytes that flow over it.
 #[async_trait::async_trait]
 pub trait UsbRedirBackend: Send + Sync {
-    type Device: Send + Sync + Debug;
-    type Key: Debug + Send + Sync + Eq + std::hash::Hash + for<'a> From<&'a Self::Device>;
-    type Session: Send + Debug;
+    /// Stable identity used by `UsbRedir` to track the active session.
+    type Key: Send + Sync + Eq + std::hash::Hash;
+    /// Owned data consumed by the backend when a session starts.
+    type SessionInput: Send;
+    type Session: Send;
 
-    /// Starts a redirection session for the given device using the provided unix stream.
+    /// Starts a redirection session using the QEMU-facing stream.
+    ///
+    /// The stream carries raw usbredir protocol data.
     async fn start_session(
         &self,
-        device: &Self::Device,
+        input: Self::SessionInput,
         stream: UnixStream,
     ) -> Result<Self::Session>;
 }
@@ -37,12 +42,24 @@ enum Event {
     NFreeChannels(i32),
 }
 
-#[derive(Debug)]
 struct Inner<B: UsbRedirBackend> {
+    /// QEMU chardev objects.
     chardevs: Vec<Chardev>,
+    /// Active device sessions. Keeping the session value alive keeps the
+    /// backend-side stream/task alive.
     sessions: HashMap<B::Key, B::Session>,
     channel: (Sender<Event>, Receiver<Event>),
     backend: B,
+}
+
+impl<B: UsbRedirBackend> Debug for Inner<B> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Inner")
+            .field("chardevs", &self.chardevs)
+            .field("sessions_len", &self.sessions.len())
+            .field("backend_type", &std::any::type_name::<B>())
+            .finish_non_exhaustive()
+    }
 }
 
 impl<B: UsbRedirBackend> Inner<B> {
@@ -67,12 +84,14 @@ impl<B: UsbRedirBackend> Inner<B> {
     }
 }
 
+/// Small manager for QEMU usbredir chardev slots.
 #[derive(Debug, Clone)]
 pub struct UsbRedir<B: UsbRedirBackend> {
     inner: Arc<RwLock<Inner<B>>>,
 }
 
 impl<B: UsbRedirBackend> UsbRedir<B> {
+    /// Creates a manager from already-discovered QEMU usbredir chardevs.
     pub fn new(chardevs: Vec<Chardev>, backend: B) -> Self {
         let mut channel = broadcast(1);
         channel.0.set_overflow(true);
@@ -86,53 +105,63 @@ impl<B: UsbRedirBackend> UsbRedir<B> {
         }
     }
 
-    pub async fn set_device_state(&self, device: &B::Device, state: bool) -> Result<bool> {
+    /// Connects one device to a QEMU usbredir chardev.
+    pub async fn connect_device(&self, key: B::Key, input: B::SessionInput) -> Result<bool> {
         let mut inner = self.inner.write().await;
-        let key = B::Key::from(device);
-        let handled = inner.sessions.contains_key(&key);
+        if inner.sessions.contains_key(&key) {
+            return Ok(true);
+        }
+
         // We should do better and watch for owner properties changes, but this would require tasks
         // anticipate result
         let mut nfree = inner.n_available_chardev().await as _;
 
-        match (state, handled) {
-            (true, false) => {
-                let chardev = inner
-                    .first_available_chardev()
-                    .await
-                    .ok_or_else(|| Error::Failed("There are no free USB channels".into()))?;
+        let chardev = inner
+            .first_available_chardev()
+            .await
+            .ok_or_else(|| Error::Failed("There are no free USB channels".into()))?;
 
-                let (stream, peer) = UnixStream::pair()?;
-                let session = inner.backend.start_session(device, stream).await?;
-                chardev.proxy.register((&peer).into()).await?;
-                inner.sessions.insert(key, session);
-                nfree -= 1;
-            }
-            (false, true) => {
-                inner.sessions.remove(&key);
-                nfree += 1;
-            }
-            _ => {
-                return Ok(state);
-            }
-        }
+        let (stream, peer) = UnixStream::pair()?;
+        let session = inner.backend.start_session(input, stream).await?;
+        chardev.proxy.register((&peer).into()).await?;
+        inner.sessions.insert(key, session);
+        nfree -= 1;
 
         let _ = inner.channel.0.broadcast(Event::NFreeChannels(nfree)).await;
 
-        Ok(state)
+        Ok(true)
     }
 
-    pub async fn is_device_connected(&self, device: &B::Device) -> bool {
+    /// Disconnects one device from its QEMU usbredir chardev.
+    ///
+    /// Dropping the stored session lets the backend tear down the stream.
+    pub async fn disconnect_device(&self, key: &B::Key) -> Result<bool> {
+        let mut inner = self.inner.write().await;
+        if inner.sessions.remove(key).is_none() {
+            return Ok(false);
+        }
+
+        let nfree = inner.n_available_chardev().await as _;
+        let _ = inner.channel.0.broadcast(Event::NFreeChannels(nfree)).await;
+
+        Ok(false)
+    }
+
+    /// Returns whether this manager has an active session for `key`.
+    pub async fn is_device_connected(&self, key: &B::Key) -> bool {
         let inner = self.inner.read().await;
 
-        inner.sessions.contains_key(&B::Key::from(device))
+        inner.sessions.contains_key(key)
     }
 
+    /// Returns the number of QEMU usbredir chardevs with no current D-Bus owner.
     pub async fn n_free_channels(&self) -> i32 {
         let inner = self.inner.read().await;
 
         inner.n_available_chardev().await as _
     }
 
+    /// Receives updates whenever this manager changes the free chardev count.
     pub async fn receive_n_free_channels(&self) -> Pin<Box<dyn Stream<Item = i32>>> {
         let inner = self.inner.read().await;
 
