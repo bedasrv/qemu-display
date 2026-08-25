@@ -4,6 +4,10 @@ xtask = "run --package xtask --"
 [patch.crates-io]
 #ironrdp = { path = "../IronRDP/crates/ironrdp" }
 #rdw4 = { path = "../rdw/rdw4" }
+#rdw4-qemu = { path = "../rdw/rdw4-qemu" }
 #yuv = { path = "/home/elmarco/src/yuvutils-rs" }
 #qoi = { git = "https://github.com/elmarco/qoi-rust.git", branch = "raw" }
 
+# This is used inside rdw4-qemu
+[patch."https://gitlab.com/marcandre.lureau/qemu-display.git"]
+qemu-display = { path = "./qemu-display" }
