@@ -740,7 +740,6 @@ dependencies = [
 [[package]]
 name = "cbindgen"
 version = "0.28.0"
-source = "git+https://gitlab.gnome.org/malureau/rdw.git#3df24640ba72f5092b722b5347d591846a8b1292"
 dependencies = [
  "clap",
  "heck 0.4.1",
@@ -4190,21 +4189,14 @@ dependencies = [
 name = "qemu-rdw"
 version = "0.1.0"
 dependencies = [
- "async-trait",
- "futures",
  "futures-util",
- "keycodemap",
- "libc",
  "log 0.4.31",
- "once_cell",
- "pixman-sys",
  "pretty_env_logger",
  "qemu-display",
  "rdw4",
+ "rdw4-qemu",
  "tracing-subscriber",
  "uds_windows",
- "usbredirhost",
- "windows",
  "zbus",
 ]
 
@@ -4426,12 +4418,10 @@ dependencies = [
 [[package]]
 name = "rdw-keycodemap"
 version = "0.1.0"
-source = "git+https://gitlab.gnome.org/malureau/rdw.git#3df24640ba72f5092b722b5347d591846a8b1292"
 
 [[package]]
 name = "rdw4"
 version = "0.1.0"
-source = "git+https://gitlab.gnome.org/malureau/rdw.git#3df24640ba72f5092b722b5347d591846a8b1292"
 dependencies = [
  "cargo_metadata",
  "cbindgen",
@@ -4458,6 +4448,24 @@ dependencies = [
  "wayland-protocols",
  "windows",
  "x11",
+]
+
+[[package]]
+name = "rdw4-qemu"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "futures-util",
+ "libc",
+ "log 0.4.31",
+ "pixman-sys",
+ "qemu-display",
+ "rdw4",
+ "uds_windows",
+ "usbredirhost",
+ "windows",
+ "zbus",
 ]
 
 [[package]]
