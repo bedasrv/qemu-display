@@ -26,14 +26,8 @@ This crate provides simple D-Bus interfaces through zbus, and some basic abstrac
 
 ### qemu-rdw
 
-This crate aims to provide Gtk+ 4 widget for a QEMU display, as well as
-dialogs/widgets for USB redirection and other options or features.
-
-Currently it's a demo app (run by default with `cargo run`). 
-
-It is also based on a *WIP* crate "RDW" (*Remote display/desktop widget*) to
-provide a base widget for various remote display solutions (VNC, RDP, Spice
-etc).
+This crate provides a demo app for `rdw4-qemu` from "[rdw](https://gitlab.gnome.org/malureau/rdw)"
+(*Remote display/desktop widget*).
 
 ### qemu-vnc
 
