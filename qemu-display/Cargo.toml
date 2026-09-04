@@ -13,11 +13,15 @@ categories = ["virtualization", "gui", "api-bindings"]
 
 [features]
 qmp = ["dep:qapi", "dep:base64"]
+# Opt-in tokio backend for consumers that enable zbus's tokio backend (e.g. via
+# ashpd). The default build keeps zbus's async-io backend and is unaffected.
+tokio = ["zbus/tokio", "dep:tokio"]
 
 [dependencies]
 tracing.workspace = true
 zbus.workspace = true
 cfg-if = "1.0"
+tokio = { version = "1", optional = true, default-features = false, features = ["net"] }
 derive_more = { version = "2.1", features = ["debug"] }
 libc = "0.2"
 enumflags2 = { version = "0.7", features = ["serde"] }
