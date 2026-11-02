@@ -4253,7 +4253,7 @@ dependencies = [
  "async-lock",
  "async-std",
  "async-trait",
- "base64 0.22.1",
+ "base64 0.23.1",
  "cfg-if",
  "derive_more",
  "enumflags2",

@@ -31,7 +31,7 @@ async-broadcast = "0.7"
 async-trait = "0.1"
 async-lock = "3.4"
 qapi = { version = "0.15", features = ["qmp"], optional = true }
-base64 = { version = "0.22", optional = true }
+base64 = { version = "0.23", optional = true }
 memmap2 = "0.9.5"
 
 [target.'cfg(windows)'.dependencies]
