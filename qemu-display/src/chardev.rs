@@ -2,8 +2,8 @@
 use crate::win32::Fd;
 use std::convert::TryFrom;
 #[cfg(unix)]
-use zbus::zvariant::Fd;
-use zbus::{proxy::CacheProperties, zvariant::ObjectPath};
+use zbus::Fd;
+use zbus::{proxy::CacheProperties, ObjectPath};
 
 use crate::Result;
 
@@ -44,7 +44,7 @@ impl Chardev {
         // that change after Register returns, so a zbus property cache can
         // briefly report the previous owner and select an occupied chardev.
         let proxy = ChardevProxy::builder(conn)
-            .path(&obj_path)?
+            .path(&obj_path)
             .cache_properties(CacheProperties::No)
             .build()
             .await?;

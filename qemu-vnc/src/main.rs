@@ -480,7 +480,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
 
     let listener = TcpListener::bind::<std::net::SocketAddr>(args.address.into()).unwrap();
     let dbus = if let Some(addr) = args.dbus_address {
-        zbus::connection::Builder::address(addr.borrow())?
+        zbus::connection::Builder::address(addr.borrow())
             .build()
             .await
     } else {

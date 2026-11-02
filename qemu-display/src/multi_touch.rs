@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use zbus::zvariant::Type;
+use zbus::Type;
 
 #[repr(u32)]
 #[derive(Type, Debug, PartialEq, Copy, Clone, Eq, Serialize, Deserialize)]

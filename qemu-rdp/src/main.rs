@@ -23,7 +23,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let dbus = match args.dbus_address.take() {
         None => zbus::Connection::session().await,
         Some(addr) => {
-            zbus::connection::Builder::address(addr.as_str())?
+            zbus::connection::Builder::address(addr.as_str())
                 .build()
                 .await
         }

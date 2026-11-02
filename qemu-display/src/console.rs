@@ -9,8 +9,8 @@ use std::{
 #[cfg(windows)]
 use uds_windows::UnixStream;
 #[cfg(unix)]
-use zbus::zvariant::Fd;
-use zbus::{zvariant::ObjectPath, Connection};
+use zbus::Fd;
+use zbus::{Connection, ObjectPath};
 
 use crate::{
     util, ConsoleListener, ConsoleListenerHandler, ConsoleListenerMap, ConsoleListenerMapHandler,
@@ -72,14 +72,11 @@ pub struct Console {
 impl Console {
     pub async fn new(conn: &Connection, idx: u32, #[cfg(windows)] peer_pid: u32) -> Result<Self> {
         let obj_path = ObjectPath::try_from(format!("/org/qemu/Display1/Console_{idx}"))?;
-        let proxy = ConsoleProxy::builder(conn).path(&obj_path)?.build().await?;
-        let keyboard = KeyboardProxy::builder(conn)
-            .path(&obj_path)?
-            .build()
-            .await?;
-        let mouse = MouseProxy::builder(conn).path(&obj_path)?.build().await?;
+        let proxy = ConsoleProxy::builder(conn).path(&obj_path).build().await?;
+        let keyboard = KeyboardProxy::builder(conn).path(&obj_path).build().await?;
+        let mouse = MouseProxy::builder(conn).path(&obj_path).build().await?;
         let multi_touch = MultiTouchProxy::builder(conn)
-            .path(&obj_path)?
+            .path(&obj_path)
             .build()
             .await?;
         Ok(Self {
@@ -114,11 +111,11 @@ impl Console {
             &p0,
         )?;
         self.proxy.register_listener(p0).await?;
-        let conn = zbus::connection::Builder::async_io_unix_stream(p1)
+        let conn = zbus::connection::Builder::unix_stream(p1)
             .p2p()
-            .serve_at("/org/qemu/Display1/Listener", ConsoleListener::new(handler))?;
+            .serve_at("/org/qemu/Display1/Listener", ConsoleListener::new(handler));
         #[cfg(windows)]
-        let conn = conn.auth_mechanism(zbus::AuthMechanism::Anonymous);
+        let conn = conn.auth_mechanism(zbus::conn::AuthMechanism::Anonymous);
         let conn = conn.build().await?;
         *self.listener.write().unwrap() = Some(conn);
         Ok(())
@@ -136,6 +133,7 @@ impl Console {
                         ConsoleListenerMap::new(handler),
                     )
                     .await
+                    .map(|replaced| replaced.is_none())
                     .map_err(|e| e.into());
                 *self.listener.write().unwrap() = Some(l);
                 res
@@ -157,6 +155,7 @@ impl Console {
                     ConsoleListenerD3d11::new(handler),
                 )
                 .await
+                .map(|replaced| replaced.is_none())
                 .map_err(|e| e.into());
         }
 
@@ -176,6 +175,7 @@ impl Console {
                     ConsoleListenerScanoutDmabuf2::new(handler),
                 )
                 .await
+                .map(|replaced| replaced.is_none())
                 .map_err(|e| e.into());
         }
 

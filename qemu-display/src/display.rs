@@ -9,8 +9,7 @@ use zbus::{
     fdo::ManagedObjects,
     names::{BusName, OwnedUniqueName, UniqueName, WellKnownName},
     proxy::OwnerChangedStream,
-    zvariant::OwnedObjectPath,
-    Connection,
+    Connection, OwnedObjectPath,
 };
 
 use crate::{Audio, Chardev, Clipboard, Error, Result, VMProxy};
@@ -73,7 +72,7 @@ impl<'d> Display<'d> {
         };
         for dest in list.into_iter() {
             let name = VMProxy::builder(conn)
-                .destination(UniqueName::from(&dest))?
+                .destination(UniqueName::from(&dest))
                 .build()
                 .await?
                 .name()
@@ -92,14 +91,14 @@ impl<'d> Display<'d> {
         D: TryInto<BusName<'d>>,
         D::Error: Into<Error>,
     {
-        let builder = fdo::ObjectManagerProxy::builder(conn).destination("org.qemu")?;
+        let builder = fdo::ObjectManagerProxy::builder(conn).destination("org.qemu");
         let builder = if let Some(dest) = dest {
             let dest = dest.try_into().map_err(Into::into)?;
-            builder.destination(dest)?
+            builder.destination(dest)
         } else {
             builder
         };
-        let proxy = builder.path("/org/qemu/Display1")?.build().await?;
+        let proxy = builder.path("/org/qemu/Display1").build().await?;
         let objects = proxy
             .get_managed_objects()
             .await
@@ -196,7 +195,7 @@ impl<'d> Display<'d> {
 
         let conn = zbus::connection::Builder::unix_stream(p1).p2p();
         #[cfg(windows)]
-        let conn = conn.auth_mechanism(zbus::AuthMechanism::Anonymous);
+        let conn = conn.auth_mechanism(zbus::conn::AuthMechanism::Anonymous);
         let conn = conn.build().await?;
 
         Self::new(

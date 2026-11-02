@@ -5,7 +5,7 @@ use std::os::unix::net::UnixStream;
 #[cfg(windows)]
 use win32::Fd;
 #[cfg(unix)]
-use zbus::zvariant::Fd;
+use zbus::Fd;
 
 #[cfg(windows)]
 use crate::win32;

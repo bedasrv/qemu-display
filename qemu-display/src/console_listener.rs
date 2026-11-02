@@ -12,7 +12,7 @@ use std::os::{
     unix::io::{AsRawFd, RawFd},
 };
 #[cfg(unix)]
-use zbus::zvariant::Fd;
+use zbus::Fd;
 
 #[derive(derive_more::Debug)]
 pub struct Scanout {

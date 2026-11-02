@@ -1,5 +1,4 @@
 use anyhow::{bail, Error};
-use enumflags2::BitFlags;
 use ironrdp_server::{Credentials, ServerEvent, TlsIdentityCtx};
 use std::path::PathBuf;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
@@ -107,7 +106,7 @@ impl Server {
         });
 
         self.dbus
-            .request_name_with_flags("org.QemuDisplay.RDP", BitFlags::EMPTY)
+            .request_name_with_flags("org.QemuDisplay.RDP", zbus::fdo::RequestNameFlags::empty())
             .await?;
 
         println!("Starting RDP server, args: {:?}", self.args);

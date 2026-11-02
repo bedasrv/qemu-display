@@ -54,18 +54,6 @@ impl From<zbus::fdo::Error> for Error {
     }
 }
 
-impl From<zbus::zvariant::Error> for Error {
-    fn from(e: zbus::zvariant::Error) -> Self {
-        Error::Zbus(e.into())
-    }
-}
-
-impl From<zbus::names::Error> for Error {
-    fn from(e: zbus::names::Error) -> Self {
-        Error::Zbus(e.into())
-    }
-}
-
 #[cfg(feature = "qmp")]
 impl From<ExecuteError> for Error {
     fn from(e: ExecuteError) -> Self {

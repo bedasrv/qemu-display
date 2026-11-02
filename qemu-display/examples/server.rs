@@ -63,7 +63,7 @@ trait Listener {
 }
 
 struct Console {
-    task: Option<zbus::Task<()>>,
+    task: Option<async_std::task::JoinHandle<()>>,
 }
 
 #[zbus::interface(name = "org.qemu.Display1.Console")]
@@ -71,46 +71,42 @@ impl Console {
     async fn register_listener(
         &mut self,
         #[zbus(connection)] conn: &zbus::Connection,
-        listener: zbus::zvariant::Fd<'_>,
+        listener: zbus::Fd<'_>,
     ) {
         let fd = listener.as_fd().try_clone_to_owned().unwrap();
-        let task = conn.executor().spawn(
-            async move {
-                let stream = UnixStream::from(fd);
-                let conn = connection::Builder::async_io_unix_stream(stream)
-                    .server(zbus::Guid::generate())
-                    .unwrap()
-                    .p2p()
-                    .build()
-                    .await
-                    .unwrap();
-                let listener = ListenerProxy::new(&conn).await.unwrap();
-                let format = pixman_sys::pixman_format_code_t_PIXMAN_x8r8g8b8;
-                let data = vec![0u8; WIDTH as usize * HEIGHT as usize * 4];
+        let task = async_std::task::spawn(async move {
+            let stream = UnixStream::from(fd);
+            let conn = connection::Builder::unix_stream(stream)
+                .server(zbus::Guid::generate())
+                .p2p()
+                .build()
+                .await
+                .unwrap();
+            let listener = ListenerProxy::new(&conn).await.unwrap();
+            let format = pixman_sys::pixman_format_code_t_PIXMAN_x8r8g8b8;
+            let data = vec![0u8; WIDTH as usize * HEIGHT as usize * 4];
+            listener
+                .scanout(WIDTH, HEIGHT, WIDTH * 4, format, ByteBuf::from(data))
+                .await
+                .unwrap();
+            let mut x = 0i32;
+            let mut y = 0i32;
+            loop {
+                let w = cmp::min(256, WIDTH - x as u32) as _;
+                let h = cmp::min(256, HEIGHT - y as u32) as _;
+                let data: Vec<u8> = (0..w * h * 4).map(|_| rand::random()).collect();
                 listener
-                    .scanout(WIDTH, HEIGHT, WIDTH * 4, format, ByteBuf::from(data))
+                    .update(x, y, w, h, w as u32 * 4, format, ByteBuf::from(data))
                     .await
                     .unwrap();
-                let mut x = 0i32;
-                let mut y = 0i32;
-                loop {
-                    let w = cmp::min(256, WIDTH - x as u32) as _;
-                    let h = cmp::min(256, HEIGHT - y as u32) as _;
-                    let data: Vec<u8> = (0..w * h * 4).map(|_| rand::random()).collect();
-                    listener
-                        .update(x, y, w, h, w as u32 * 4, format, ByteBuf::from(data))
-                        .await
-                        .unwrap();
-                    x += 1;
-                    if x >= WIDTH as _ {
-                        x = 0;
-                        y += 1;
-                    }
-                    // async_std::task::sleep(core::time::Duration::from_millis(1)).await;
+                x += 1;
+                if x >= WIDTH as _ {
+                    x = 0;
+                    y += 1;
                 }
-            },
-            "display",
-        );
+                // async_std::task::sleep(core::time::Duration::from_millis(1)).await;
+            }
+        });
         self.task = Some(task);
     }
 
@@ -157,10 +153,10 @@ impl Console {
 async fn main() -> zbus::Result<()> {
     tracing_subscriber::fmt::init();
 
-    let _connection = connection::Builder::session()?
-        .name("org.qemu")?
-        .serve_at("/org/qemu/Display1/VM", VM)?
-        .serve_at("/org/qemu/Display1/Console_0", Console { task: None })?
+    let _connection = connection::Builder::session()
+        .name("org.qemu")
+        .serve_at("/org/qemu/Display1/VM", VM)
+        .serve_at("/org/qemu/Display1/Console_0", Console { task: None })
         .build()
         .await?;
 

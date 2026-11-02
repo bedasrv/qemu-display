@@ -1,6 +1,6 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::convert::TryFrom;
-use zbus::zvariant::{ObjectPath, Type};
+use zbus::{ObjectPath, Type};
 
 use crate::Result;
 
@@ -96,7 +96,7 @@ impl Clipboard {
     pub async fn new(conn: &zbus::Connection) -> Result<Self> {
         let obj_path = ObjectPath::try_from("/org/qemu/Display1/Clipboard").unwrap();
         let proxy = ClipboardProxy::builder(conn)
-            .path(&obj_path)?
+            .path(&obj_path)
             .build()
             .await?;
         Ok(Self {
