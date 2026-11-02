@@ -2,13 +2,16 @@
 members = [
     "keycodemap",
     "qemu-display",
-    "qemu-rdw",
+    # FIXME: disabled until rdw4-qemu (gitlab.gnome.org/malureau/rdw) is ported
+    # to zbus 6. Re-enable this member and the default-members line below once
+    # rdw is updated; qemu-rdw's own source also needs a zbus 6 port.
+    # "qemu-rdw",
     "qemu-vnc",
     "qemu-vte",
     "qemu-rdp",
     "xtask",
 ]
-default-members = ["qemu-rdw"]
+# default-members = ["qemu-rdw"]
 resolver = "2"
 
 [workspace.package]
@@ -26,9 +29,10 @@ keycodemap = { path = "keycodemap", version = "0.1" }
 
 [patch.crates-io]
 vnc = { git = "https://github.com/elmarco/rust-vnc", branch = "server" }
-rdw4 = { git = "https://gitlab.gnome.org/malureau/rdw.git" }
-rdw4-qemu = { git = "https://gitlab.gnome.org/malureau/rdw.git" }
-epoxy = { git = "https://github.com/theCapypara/epoxy-rs", branch = "master" }
+# FIXME: only needed by qemu-rdw/rdw4-qemu, restore together with that member.
+# rdw4 = { git = "https://gitlab.gnome.org/malureau/rdw.git" }
+# rdw4-qemu = { git = "https://gitlab.gnome.org/malureau/rdw.git" }
+# epoxy = { git = "https://github.com/theCapypara/epoxy-rs", branch = "master" }
 
 [patch."https://gitlab.com/marcandre.lureau/qemu-display.git"]
 qemu-display = { path = "qemu-display" }

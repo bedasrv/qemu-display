@@ -15,3 +15,9 @@ gio-unix = "0.22.6"
 [dependencies.vte]
 package = "vte4"
 version = "0.10"
+
+# vte4 uses `gtk::Accessible` without enabling the gtk4 feature that provides it;
+# so far only rdw happened to enable it through feature unification.
+[dependencies.gtk4]
+version = "0.11"
+features = ["v4_10"]
