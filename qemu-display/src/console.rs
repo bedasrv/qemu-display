@@ -147,7 +147,8 @@ impl Console {
         &self,
         handler: H,
     ) -> Result<bool> {
-        if let Some(l) = &*self.listener.write().unwrap() {
+        let conn = self.listener.read().unwrap().clone();
+        if let Some(l) = conn {
             return l
                 .object_server()
                 .at(
@@ -167,7 +168,8 @@ impl Console {
         &self,
         handler: H,
     ) -> Result<bool> {
-        if let Some(l) = &*self.listener.write().unwrap() {
+        let conn = self.listener.read().unwrap().clone();
+        if let Some(l) = conn {
             return l
                 .object_server()
                 .at(

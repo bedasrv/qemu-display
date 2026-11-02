@@ -12,7 +12,7 @@ fn main() {
 
     let app = gtk::Application::new(Some("org.qemu.vte-example"), Default::default());
     app.add_main_option(
-        &glib::OPTION_REMAINING,
+        glib::OPTION_REMAINING,
         glib::Char(0),
         glib::OptionFlags::NONE,
         glib::OptionArg::StringArray,

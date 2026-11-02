@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
 
 const VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),
@@ -49,16 +49,4 @@ pub struct ServerArgs {
     /// Codecs configuration
     #[clap(long)]
     pub codecs: Vec<String>,
-}
-
-#[derive(Debug, PartialEq, Clone, ValueEnum)]
-pub enum EnableDisableArg {
-    Enable,
-    Disable,
-}
-
-impl EnableDisableArg {
-    pub fn enabled(&self) -> bool {
-        matches!(self, Self::Enable)
-    }
 }

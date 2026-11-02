@@ -7,7 +7,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt::init();
 
     let qmp_path = args().nth(1).expect("argument: QMP socket path");
-    let display = Display::new_qmp(qmp_path).await?;
+    let _display = Display::new_qmp(qmp_path).await?;
 
     loop {
         sleep(Duration::from_secs(1));

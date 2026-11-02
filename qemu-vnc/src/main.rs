@@ -87,11 +87,11 @@ impl Client {
     }
 
     async fn key_event(&self, qnum: u32, down: bool) -> Result<(), Box<dyn Error>> {
-        let inner = self.server.inner.lock().unwrap();
+        let keyboard = self.server.inner.lock().unwrap().console.keyboard.clone();
         if down {
-            inner.console.keyboard.press(qnum).await?;
+            keyboard.press(qnum).await?;
         } else {
-            inner.console.keyboard.release(qnum).await?;
+            keyboard.release(qnum).await?;
         }
         Ok(())
     }
@@ -112,7 +112,7 @@ impl Client {
                 keysym: _,
                 keycode,
             } => {
-                self.key_event(keycode as u32, down).await?;
+                self.key_event(keycode, down).await?;
             }
             VncEvent::PointerEvent {
                 button_mask,
@@ -120,17 +120,15 @@ impl Client {
                 y_position,
             } => {
                 let buttons = button_mask_to_set(button_mask);
-                let inner = self.server.inner.lock().unwrap();
+                let mouse = self.server.inner.lock().unwrap().console.mouse.clone();
 
                 for b in buttons.difference(&self.last_buttons) {
-                    inner.console.mouse.press(*b).await?;
+                    mouse.press(*b).await?;
                 }
                 for b in self.last_buttons.difference(&buttons) {
-                    inner.console.mouse.release(*b).await?;
+                    mouse.release(*b).await?;
                 }
-                if let Err(err) = inner
-                    .console
-                    .mouse
+                if let Err(err) = mouse
                     .set_abs_position(x_position as _, y_position as _)
                     .await
                 {
@@ -145,7 +143,7 @@ impl Client {
             }
             VncEvent::SetEncodings(e) => {
                 self.encodings = HashSet::from_iter(e);
-                println!("Supported encodings: {:?}", &self.encodings);
+                println!("Supported encodings: {:?}", self.encodings);
 
                 if self.encodings.contains(&Encoding::ExtendedKeyEvent) {
                     let mut fbu = FramebufferUpdate::new(None);
@@ -158,10 +156,8 @@ impl Client {
                 height,
                 screens: _,
             } => {
-                let inner = self.server.inner.lock().unwrap();
-                inner
-                    .console
-                    .proxy
+                let proxy = self.server.inner.lock().unwrap().console.proxy.clone();
+                proxy
                     .set_ui_info(0, 0, 0, 0, width as _, height as _)
                     .await?;
             }
@@ -328,9 +324,8 @@ impl Server {
     }
 
     async fn run_console(&self) -> Result<(), Box<dyn Error>> {
-        let inner = self.inner.lock().unwrap();
-        inner
-            .console
+        let console = self.inner.lock().unwrap().console.clone();
+        console
             .register_listener(ConsoleListener {
                 server: self.clone(),
             })
@@ -353,7 +348,7 @@ impl Server {
             width: inner.image.width() as u16,
             height: inner.image.height() as u16,
         };
-        fbu.add_raw_pixels(rect, &pixel_data);
+        fbu.add_raw_pixels(rect, pixel_data);
         server.send(&fbu)?;
         Ok(())
     }
@@ -386,10 +381,9 @@ impl Server {
 
         let mut client = Client::new(self.clone(), vnc_server, share);
         self.run_console().await?;
-        let rx = self.rx.lock().unwrap();
         loop {
             let ev = if client.update_pending() {
-                match rx.try_recv() {
+                match self.rx.lock().unwrap().try_recv() {
                     Ok(e) => Some(e),
                     Err(mpsc::TryRecvError::Empty) => None,
                     Err(e) => {
@@ -397,7 +391,7 @@ impl Server {
                     }
                 }
             } else {
-                Some(rx.recv()?)
+                Some(self.rx.lock().unwrap().recv()?)
             };
             if !client.handle_event(ev).await? {
                 break;
@@ -490,7 +484,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
 
     let vm_name = VMProxy::new(&dbus).await?.name().await?;
 
-    let console = Console::new(&dbus.into(), 0)
+    let console = Console::new(&dbus, 0)
         .await
         .expect("Failed to get the console");
     let server = Server::new(format!("qemu-vnc ({})", vm_name), console).await?;

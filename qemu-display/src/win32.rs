@@ -73,7 +73,7 @@ impl ProcessHandle {
         }
     }
 
-    pub fn duplicate_socket(&self, sock: SOCKET) -> crate::Result<Fd> {
+    pub fn duplicate_socket(&self, sock: SOCKET) -> crate::Result<Fd<'_>> {
         duplicate_socket(self.process_id()?, sock)
     }
 }
@@ -99,7 +99,7 @@ pub(crate) fn unix_stream_get_peer_pid(stream: &UnixStream) -> Result<u32, std::
 
     let socket = stream.as_raw_socket();
     const SIO_AF_UNIX_GETPEERPID: u32 = _WSAIOR!(IOC_VENDOR, 256);
-    let mut ret = 0 as u32;
+    let mut ret = 0_u32;
     let mut bytes = 0;
 
     let r = unsafe {

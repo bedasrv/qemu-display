@@ -68,11 +68,7 @@ struct Console {
 
 #[zbus::interface(name = "org.qemu.Display1.Console")]
 impl Console {
-    async fn register_listener(
-        &mut self,
-        #[zbus(connection)] conn: &zbus::Connection,
-        listener: zbus::Fd<'_>,
-    ) {
+    async fn register_listener(&mut self, listener: zbus::Fd<'_>) {
         let fd = listener.as_fd().try_clone_to_owned().unwrap();
         let task = async_std::task::spawn(async move {
             let stream = UnixStream::from(fd);
