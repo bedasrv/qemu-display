@@ -193,7 +193,7 @@ impl<'d> Display<'d> {
             fdname: "fdname".into(),
         })?;
 
-        let conn = zbus::connection::Builder::unix_stream(p1).p2p();
+        let conn = zbus::connection::Builder::async_io_unix_stream(p1).p2p();
         #[cfg(windows)]
         let conn = conn.auth_mechanism(zbus::conn::AuthMechanism::Anonymous);
         let conn = conn.build().await?;
@@ -247,9 +247,58 @@ impl<'d> Display<'d> {
         Ok(Some(Clipboard::new(&self.inner.conn).await?))
     }
 
+    /// Whether the peer has an audio interface to register a listener with.
+    ///
+    /// QEMU only exports `/org/qemu/Display1/Audio` when the VM has an audio
+    /// device, and its own client asks before it registers rather than after:
+    ///
+    /// ```c
+    /// iface = g_dbus_object_manager_get_interface(manager,
+    ///          DBUS_DISPLAY1_ROOT "/Audio", "org.qemu.Display1.Audio");
+    /// if (!iface) {
+    ///     return;
+    /// }
+    /// ```
+    ///
+    /// Asking afterwards looks equivalent and is not. `RegisterOutListener`
+    /// takes a file descriptor, so the difference between not sending it and
+    /// sending it to an object that does not exist is a descriptor handed to
+    /// the peer for nothing — and the answer, `UnknownMethod`, only arrives
+    /// once it is too late. The object manager already listed the peer's
+    /// objects, so the question can be answered before anything is sent.
+    pub fn has_audio(&self) -> bool {
+        const AUDIO_PATH: &str = "/org/qemu/Display1/Audio";
+        const AUDIO: &str = "org.qemu.Display1.Audio";
+        self.inner.objects.iter().any(|(path, interfaces)| {
+            path.as_str() == AUDIO_PATH
+                && interfaces.keys().any(|name| name.as_str() == AUDIO)
+        })
+    }
+
+    /// The chardevs the peer exports, in the order it lists them.
+    ///
+    /// The path alone does not make an object a chardev, and QEMU's own client
+    /// checks the interface as well as the prefix:
+    ///
+    /// ```c
+    /// iface = g_dbus_object_get_interface(obj, "org.qemu.Display1.Chardev");
+    /// if (!iface) {
+    ///     continue;
+    /// }
+    /// ```
+    ///
+    /// Skipping that is not a crash on its own — a `Get` at an object without
+    /// the interface comes back as an error and the caller moves on — but it
+    /// does mean sending methods to objects that are not chardevs, on a
+    /// connection where the peer is a fixed piece of software rather than a bus
+    /// that can shrug it off.
     pub async fn chardevs(&self) -> Vec<Chardev> {
+        const CHARDEV: &str = "org.qemu.Display1.Chardev";
         stream::iter(&self.inner.objects)
-            .filter_map(|(p, _ifaces)| async move {
+            .filter_map(|(p, interfaces)| async move {
+                if !interfaces.keys().any(|name| name.as_str() == CHARDEV) {
+                    return None;
+                }
                 match p.strip_prefix("/org/qemu/Display1/Chardev_") {
                     Some(id) => Chardev::new(&self.inner.conn, id).await.ok(),
                     _ => None,

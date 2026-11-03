@@ -147,8 +147,10 @@ impl Console {
         &self,
         handler: H,
     ) -> Result<bool> {
-        let conn = self.listener.read().unwrap().clone();
-        if let Some(l) = conn {
+        // The guard is cloned out rather than held across the `await`, for the
+        // reason given on `set_scanout_dmabuf2_listener`.
+        let listener = self.listener.read().unwrap().clone();
+        if let Some(l) = listener {
             return l
                 .object_server()
                 .at(
@@ -168,8 +170,17 @@ impl Console {
         &self,
         handler: H,
     ) -> Result<bool> {
-        let conn = self.listener.read().unwrap().clone();
-        if let Some(l) = conn {
+        // **The guard is cloned out, not held across the `await`.**
+        //
+        // A `std::sync::Mutex` guard held over an await point is not a lint
+        // nit: the executor may move the future to another thread, and if the
+        // guard's thread is the one that would release it -- or if anything else
+        // in the process wants that lock in the meantime -- this deadlocks. It
+        // is also the shape `set_map_listener` already avoids by taking the
+        // connection out and putting it back, which is why that one is not in
+        // clippy's list and these two are.
+        let listener = self.listener.read().unwrap().clone();
+        if let Some(l) = listener {
             return l
                 .object_server()
                 .at(

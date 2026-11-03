@@ -56,6 +56,24 @@ pub struct ScanoutMmap {
 }
 
 impl ScanoutMap {
+    /// Map the surface QEMU offered, **read-only and private**.
+    ///
+    /// `map_copy_read_only()` is `MAP_PRIVATE` with `PROT_READ`, which is what
+    /// `c/display.c`'s `on_scanout_map` uses, with its reason in the comment
+    /// above the call: *"MAP_PRIVATE: we only read; avoid propagating writes
+    /// back to QEMU."*
+    ///
+    /// This used to be `MmapOptions::map()`, whose defaults are `MAP_SHARED`
+    /// and writable. Nothing wrote through it, and nothing *could*:
+    /// `ScanoutMmap` holds its `Mmap` privately and implements only
+    /// `AsRef<[u8]>`, so a writable mapping was not reachable through this API
+    /// in the first place. The default was an accident of an omitted argument
+    /// standing in for an invariant, and the fix is to say the invariant rather
+    /// than to add a mode parameter with one user and one branch.
+    ///
+    /// The practical difference is nil today and the parity difference is not:
+    /// a port should not be more permissive with QEMU's memory than the program
+    /// it is a port of.
     pub fn mmap(self) -> std::io::Result<ScanoutMmap> {
         let len = self.height as usize * self.stride as usize;
         let offset = self.offset;
@@ -70,7 +88,11 @@ impl ScanoutMap {
             memmap2::MmapOptions::new()
                 .len(len)
                 .offset(offset.into())
-                .map(desc)?
+                // `unsafe` because the length and offset come from QEMU, which
+                // is the peer: both are checked against the descriptor's actual
+                // size by `mmap` itself, and a mapping past the end of the file
+                // fails rather than succeeding.
+                .map_copy_read_only(desc)?
         };
 
         #[cfg(windows)]
