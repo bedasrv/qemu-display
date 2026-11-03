@@ -1,0 +1,15 @@
+[package]
+name = "witness"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+description = "An independent VNC client for checking what qemu-vnc puts on the wire"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+# The independent implementation. It shares no code with `qemu-vnc`, which is
+# the whole point: when the two agree, two implementations of the format are
+# involved rather than one reading itself back. The crate is published as
+# `vnc-rs`; it is aliased to `vnc` because that is the name the source uses.
+vnc = { package = "vnc-rs", version = "0.6" }

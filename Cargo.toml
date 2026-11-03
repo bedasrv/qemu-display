@@ -7,6 +7,7 @@ members = [
     # rdw is updated; qemu-rdw's own source also needs a zbus 6 port.
     # "qemu-rdw",
     "qemu-vnc",
+    "qemu-vnc/tests/witness",
     "qemu-vte",
     "qemu-rdp",
     "xtask",
@@ -28,7 +29,6 @@ qemu-display = { path = "qemu-display", version = "0.2" }
 keycodemap = { path = "keycodemap", version = "0.1" }
 
 [patch.crates-io]
-vnc = { git = "https://github.com/elmarco/rust-vnc", branch = "server" }
 # FIXME: only needed by qemu-rdw/rdw4-qemu, restore together with that member.
 # rdw4 = { git = "https://gitlab.gnome.org/malureau/rdw.git" }
 # rdw4-qemu = { git = "https://gitlab.gnome.org/malureau/rdw.git" }

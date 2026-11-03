@@ -2,18 +2,76 @@
 name = "qemu-vnc"
 version = "0.1.0"
 authors = ["Marc-André Lureau <marcandre.lureau@redhat.com>"]
-edition = "2018"
+edition = "2024"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "org.qemu.Display1 VNC server"
+repository = { workspace = true }
+keywords = ["VNC", "QEMU", "VM"]
+license = { workspace = true }
+categories = ["virtualization", "gui", "network-programming"]
+
+[lib]
+name = "qemu_vnc"
+path = "src/lib.rs"
+
+[[bin]]
+name = "qemu-vnc"
+path = "src/main.rs"
+
+[features]
+# The lossy JPEG encoding, the one QEMU exposes as `-vnc ...,lossy`. Off by
+# default: it makes the picture worse, and the flag has to be asked for.
+lossy = []
+# The WebSocket listener, the one QEMU exposes as `-vnc ...,websocket=<port>`.
+websockets = ["dep:async-tungstenite"]
+# The audio backend, which is `cpal`. Without it the samples are played on the
+# null sink, or dumped to a file with `--audio-dump`, so the audio path works
+# on a machine with no output device — which is what a build server is.
+audio = ["dep:cpal"]
+# SASL authentication, the one QEMU exposes as `-vnc ...,sasl`. Needs the
+# Cyrus SASL library at build time, exactly like QEMU's `--enable-vnc-sasl`,
+# which is why it is off by default. The `ANONYMOUS` mechanism needs no
+# library, so the protocol is there either way.
+sasl = ["dep:sasl2-sys", "sasl2-sys/vendored"]
 
 [dependencies]
 qemu-display.workspace = true
 keycodemap.workspace = true
-vnc = "0.4.0"
+tracing.workspace = true
+byteorder = "1.5"
+# The zlib streams of the ZRLE, zlib (hextile) and Tight encodings.
+flate2 = { version = "1.0", features = ["zlib-rs"] }
+# The audio output backend, for the `audio` feature.
+cpal = { version = "0.18", optional = true }
+# The Cyrus SASL library, for the `sasl` feature. It generates its bindings
+# from the installed headers.
+sasl2-sys = { version = "0.1", optional = true }
+# RFB over WebSocket, for the `--websocket` listener.
+async-tungstenite = { version = "0.30", default-features = false, features = [
+    "handshake",
+    "futures-03-sink",
+], optional = true }
 clap = { version = "4.5", features = ["derive"] }
 zbus.workspace = true
 libc = "0.2.155"
 image = "0.25"
-derivative = "2.2.0"
 async-io = "2.3"
 async-trait = "0.1.81"
+async-channel = "2.3"
+futures = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+vt100 = "0.16"
+font8x8 = "0.3"
+# Resampling, for a client that asked for a different sample rate than the
+# guest produces. Both are pure Rust, so unlike `cpal` they need no system
+# library, and the resampler is in the default build because the conversion
+# belongs to every client rather than to the one that makes the noise.
+rubato = "5.0.0"
+# `rubato`'s interleaved buffer types, which is the shape the samples arrive in.
+audioadapter-buffers = "5.2.0"
+
+[dev-dependencies]
+# The pixel data of a scanout, as `org.qemu.Display1.Listener.Scanout` takes
+# it: the same type `qemu-display` uses, so the mock sends what the client
+# expects rather than a look-alike.
+serde_bytes = "0.11"
